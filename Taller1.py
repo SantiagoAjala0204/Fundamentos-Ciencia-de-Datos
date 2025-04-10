@@ -21,8 +21,7 @@ df["Description"]=df["Description"].astype('string')
 df["Country"]=df["Country"].astype('string')
 df["CustomerID"]=df["CustomerID"].astype('string')
 
-
-print("\n Tipo de datos después:", df.dtypes)
+print("\n Tipo de datos después de cambiarlos:", df.dtypes)
 
 # Revisar valores faltantes en las columnas
 
