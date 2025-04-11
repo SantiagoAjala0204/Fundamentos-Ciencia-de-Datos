@@ -46,13 +46,28 @@ df = df[(df['Quantity'] > 0) & (df['UnitPrice'] > 0)]
 # Imprimir el tamaño del DataFrame
 print(f"\n El tamaño del df es {df.shape}")
 
-# Convertir la columna InvoiceDate a tipo datetime
-df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
 
 # Verificar si hay transacciones canceladas
 count = df['InvoiceNo'].str.startswith('C', na=False).sum()
 print(f"Hay {count} registros en 'InvoiceNo' que empiezan con 'C'.")
 
+#Eliminar espacios en blanco al inicio y al final de las columnas de tipo string
+df = df.apply(lambda x: x.str.strip() if x.dtype == "string[python]" else x)
+
+#Min Quantity
+print(df['Quantity'].min())
+# Max Quantity
+print(df['Quantity'].max())
+
+# Min UnitPrice
+print(df['UnitPrice'].min())
+# Max UnitPrice
+print(df['UnitPrice'].max())
+
+# Min InvoiceDate
+print(df['InvoiceDate'].min())
+# Max InvoiceDate
+print(df['InvoiceDate'].max())
 ###########################################################
 # 3.- Subir los datos limpios a una base de datos SQLite
 ## Conectar a la base de datos MySQL
@@ -94,3 +109,82 @@ df_sql = pd.read_sql(query, con=conexion)
 conexion.close()
 # Mostrar los primeros registros
 print(df_sql.head())
+
+#######################  GRAFICAS ############################
+import matplotlib.pyplot as plt
+import seaborn as sns
+# Top 10 países por número de transacciones
+ventas_por_pais = df_sql.groupby('Country')['InvoiceNo'].count().sort_values(ascending=False).head(10).reset_index()
+
+plt.figure(figsize=(10, 6))
+sns.barplot(data=ventas_por_pais, x='Country', y='InvoiceNo', hue='Country', palette='Blues_d', legend=False)
+plt.title('Cantidad de transacciones por país (Top 10)', fontsize=14)
+plt.xlabel('País')
+plt.ylabel('Transacciones')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('transacciones_por_pais.png')
+plt.show()
+
+#2.- Top 10 productos más vendidos (por cantidad)
+
+producto_mas_vendidos = df_sql.groupby('Description')['Quantity'].sum().sort_values(ascending=False).head(10).reset_index()
+
+plt.figure(figsize=(12, 6))
+sns.barplot(data=producto_mas_vendidos, x='Quantity', y='Description', hue='Quantity', palette='Reds')
+plt.title('Top 10 productos más vendidos', fontsize=14)
+plt.xlabel('Cantidad vendida')
+plt.ylabel('Producto')
+plt.tight_layout()
+plt.savefig('distribucion_cantidad_productos.png')
+plt.show()
+
+#3.- Trasacciones por mes
+ventas_por_mes=df_sql.copy()
+ventas_por_mes['Mes'] = ventas_por_mes['InvoiceDate'].dt.to_period('M')
+ventas_por_mes = ventas_por_mes.groupby('Mes')['Quantity'].sum().reset_index()
+ventas_por_mes['Mes'] = ventas_por_mes['Mes'].astype(str)  # Convertir a string para mejor visualización
+
+plt.figure(figsize=(12, 6))
+sns.lineplot(data=ventas_por_mes, x='Mes', y='Quantity', marker='o', color='seagreen', linewidth=2)
+plt.title('Transacciones por mes', fontsize=14)
+plt.xlabel('Mes')
+plt.ylabel('Cantidad vendida')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('transacciones_por_mes.png')
+plt.show()
+
+# 4.- HeatMap
+# Copiar el DataFrame 
+heap_map_df = df_sql.copy()
+
+# Filtrar ventas del primer mes
+heap_map_df = heap_map_df[(heap_map_df['InvoiceDate'] > '2010-12-01') & (heap_map_df['InvoiceDate'] < '2011-01-12')].copy()
+
+# Agregar dias de semana, total (cantidad * precio), hora
+heap_map_df.loc[:, 'DiaSemana'] = heap_map_df['InvoiceDate'].dt.day_name()
+heap_map_df.loc[:, 'Total'] = heap_map_df['Quantity'] * heap_map_df['UnitPrice']
+heap_map_df.loc[:, 'Hora'] = heap_map_df['InvoiceDate'].dt.hour
+
+# Crear tabla dinámica
+ventas_heatmap = heap_map_df.pivot_table(
+    index='DiaSemana',
+    columns='Hora',
+    values='Total',
+    aggfunc='sum'
+)
+
+# Reordenar días de la semana
+orden_dias = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+ventas_heatmap = ventas_heatmap.reindex(orden_dias)
+
+# Graficar el mapa de calor
+plt.figure(figsize=(15, 6))
+sns.heatmap(ventas_heatmap, cmap='YlGnBu', linewidths=0.5)
+plt.title('Valor de las ventas por día de la semana y hora')
+plt.xlabel('Hora del día')
+plt.ylabel('Día de la semana')
+plt.tight_layout()
+plt.savefig('heatmap_ventas_semana_hora.png')
+plt.show()
