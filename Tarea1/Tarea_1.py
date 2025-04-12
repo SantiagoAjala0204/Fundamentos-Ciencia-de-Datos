@@ -88,7 +88,7 @@ plt.xlabel('Día de la semana')
 plt.ylabel('Temperatura celsius')
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('variacion_temperatura.png')
+plt.savefig('1_variacion_temperatura.png')
 plt.show()
 
 """#Análisis del dia en donde hay mas viento (Horario laboral)"""
@@ -117,7 +117,7 @@ plt.xlabel('Hora del día')
 plt.ylabel('Velocidad del viento (m/s)')
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('velocidad_viendo.png')
+plt.savefig('2_velocidad_viendo.png')
 plt.show()
 
 """#Análisis de la temperatura durante la los dias de la semana"""
@@ -135,6 +135,13 @@ df_temperature_week = df_temperature_week[
 
 df_temperature_week['day_of_week'] = df_temperature_week['date'].dt.day_name()
 df_temperature_week['Hour']=df_temperature_week['date'].dt.hour
+# Establecer orden de los días de la semana (Lunes a Viernes)
+dias_ordenados = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+df_temperature_week['day_of_week'] = pd.Categorical(
+    df_temperature_week['day_of_week'],
+    categories=dias_ordenados,
+    ordered=True
+)
 #Filtra en de 7 ha 19
 df_temperature_week = df_temperature_week[(df_temperature_week['Hour'] >= 7) & (df_temperature_week['Hour'] <= 19)]
 df_temperature_week
@@ -167,7 +174,7 @@ plt.title("Temperatura durante la semana", fontsize=14)
 plt.xlabel("Día de la semana")
 plt.ylabel("Hora")
 plt.tight_layout()
-plt.savefig('variacion_temperatura_semana.png')
+plt.savefig('3_variacion_temperatura_semana.png')
 plt.show()
 
 """#Análisis de la cobertura de nubes"""
@@ -182,6 +189,13 @@ df_cloud_cover = df_cloud_cover[
 #Dias y horas
 df_cloud_cover['day_of_week'] = df_cloud_cover['date'].dt.day_name()
 df_cloud_cover['Hour']=df_cloud_cover['date'].dt.hour
+# Establecer orden de los días de la semana (Lunes a Viernes)
+dias_ordenados = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+df_cloud_cover['day_of_week'] = pd.Categorical(
+    df_cloud_cover['day_of_week'],
+    categories=dias_ordenados,
+    ordered=True
+)
 #Filtrar la hora entre 7 am y 7 pm
 df_cloud_cover = df_cloud_cover[(df_cloud_cover['Hour'] >= 7) & (df_cloud_cover['Hour'] <= 19)]
 df_cloud_cover
@@ -200,7 +214,7 @@ plt.title("(%) Cobertura de nubes", fontsize=14)
 plt.xlabel("Día de la semana")
 plt.ylabel("Hora")
 plt.tight_layout()
-plt.savefig('cobertura_nubes_semana.png')
+plt.savefig('4_cobertura_nubes_semana.png')
 plt.show()
 
 """#Análisis de las variables: temperature_2m, wind_speed_120m, cloud_cover"""
@@ -251,5 +265,5 @@ ax1.legend(
 plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
 plt.tight_layout(rect=[0, 0, 0.85, 1])  #Espacio para la leyenda
 plt.tight_layout()
-plt.savefig('clima_14_18_abril.png')
+plt.savefig('5_clima_14_18_abril.png')
 plt.show()
