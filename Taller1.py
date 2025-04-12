@@ -12,7 +12,11 @@ print(df.head())
 # 2.- Limpieza de los datos
 
 # Imprimir el tipo de datos de las columnas
-print("\n Tipo de datos antes:", df.dtypes)
+print("\n Tipo de datos antes:\n", df.dtypes)
+
+#Cambiar a entero la variables CustomerID
+df["CustomerID"] = pd.to_numeric(df["CustomerID"], errors='coerce')
+df["CustomerID"] = df["CustomerID"].astype('Int64') 
 
 # Cambiar el tipo de dato a las columnas
 df["InvoiceNo"]=df["InvoiceNo"].astype('string')
@@ -21,7 +25,7 @@ df["Description"]=df["Description"].astype('string')
 df["Country"]=df["Country"].astype('string')
 df["CustomerID"]=df["CustomerID"].astype('string')
 
-print("\n Tipo de datos después de cambiarlos:", df.dtypes)
+print("\n Tipo de datos después de cambiarlos:\n", df.dtypes)
 
 # Revisar valores faltantes en las columnas
 
@@ -32,13 +36,15 @@ def null_values(df):
         else:
             print(f"La columna {col} no tiene valores nulos")
 
-print("\n Columnas antes de eliminar valores faltantes")
+print("\n Columnas antes de eliminar valores faltantes\n")
 null_values(df)
 
 # Eliminar valores nulos en la columna CustomerID
 df = df.dropna(subset=['CustomerID'])
-print("\n Columnas después de eliminar valores faltantes")
+print("\n Columnas después de eliminar valores faltantes\n")
 null_values(df)
+#Redondear a dos decimales la variables UnitPrice
+df['UnitPrice'] = df['UnitPrice'].round(2)
 
 # Filtrar Quantity > 0 o UnitPrice > 0
 df = df[(df['Quantity'] > 0) & (df['UnitPrice'] > 0)]
@@ -51,23 +57,39 @@ print(f"\n El tamaño del df es {df.shape}")
 count = df['InvoiceNo'].str.startswith('C', na=False).sum()
 print(f"Hay {count} registros en 'InvoiceNo' que empiezan con 'C'.")
 
+#Pasar a mayusculas la columna Description
+df['Description'] = df['Description'].str.upper()
+
 #Eliminar espacios en blanco al inicio y al final de las columnas de tipo string
 df = df.apply(lambda x: x.str.strip() if x.dtype == "string[python]" else x)
 
 #Min Quantity
-print(df['Quantity'].min())
+print("Valor min de Cantidad: ",df['Quantity'].min())
 # Max Quantity
-print(df['Quantity'].max())
+print("Valor max de Cantidad: ",df['Quantity'].max())
+#Ver registros donde quanity es igual a 80995
+df[df['Quantity'] == 80995]
 
 # Min UnitPrice
-print(df['UnitPrice'].min())
+print("Valor min de Valor Cantidad: ",df['UnitPrice'].min())
 # Max UnitPrice
-print(df['UnitPrice'].max())
+print("Valor max de Valor Cantidad: ",df['UnitPrice'].max())
 
 # Min InvoiceDate
-print(df['InvoiceDate'].min())
+print("Fecha min de registros Datset",df['InvoiceDate'].min())
 # Max InvoiceDate
-print(df['InvoiceDate'].max())
+print("Fecha max de registros Datset",df['InvoiceDate'].max())
+
+######## StockCode Análisi###
+df_prueba=df.copy()
+df_prueba['Tamanio']=df_prueba['StockCode'].str.len()
+#Filtrar los que tienen tamanio distinto de 6
+df_prueba=df_prueba[df_prueba['Tamanio']!=5]
+#Selecionar columnas tmanio y descripcion
+df_prueba=df_prueba[['Tamanio','Description','InvoiceNo']]
+#Agrupar por tamanio y descripcion y cuenta cuantas apariciones hay
+df_prueba=df_prueba.groupby(['Tamanio','Description'])['InvoiceNo'].count()
+print(df_prueba)
 ###########################################################
 # 3.- Subir los datos limpios a una base de datos SQLite
 ## Conectar a la base de datos MySQL
@@ -81,7 +103,7 @@ nombre_bd = 'online_store'
 #Guardar el df en MySQL
 # Crear la conexión usando SQLAlchemy y pymysql
 conexion_load = create_engine(f"mysql+pymysql://{usuario}:{contrasena}@{host}:{puerto}/{nombre_bd}")
-# Subir el DataFrame a una tabla nueva (ej. 'ventas'), reemplazándola si ya existe
+# Subir el DataFrame a una tabla nueva
 df.to_sql(name='online_retails', con=conexion_load, if_exists='replace', index=False)
 
 print("✅ ¡Datos subidos exitosamente a la base de datos!")
@@ -123,7 +145,7 @@ plt.xlabel('País')
 plt.ylabel('Transacciones')
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('transacciones_por_pais.png')
+plt.savefig('1_transacciones_por_pais.png')
 plt.show()
 
 #2.- Top 10 productos más vendidos (por cantidad)
@@ -136,7 +158,7 @@ plt.title('Top 10 productos más vendidos', fontsize=14)
 plt.xlabel('Cantidad vendida')
 plt.ylabel('Producto')
 plt.tight_layout()
-plt.savefig('distribucion_cantidad_productos.png')
+plt.savefig('2_distribucion_cantidad_productos.png')
 plt.show()
 
 #3.- Trasacciones por mes
@@ -152,7 +174,7 @@ plt.xlabel('Mes')
 plt.ylabel('Cantidad vendida')
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig('transacciones_por_mes.png')
+plt.savefig('3_transacciones_por_mes.png')
 plt.show()
 
 # 4.- HeatMap
@@ -186,5 +208,5 @@ plt.title('Valor de las ventas por día de la semana y hora')
 plt.xlabel('Hora del día')
 plt.ylabel('Día de la semana')
 plt.tight_layout()
-plt.savefig('heatmap_ventas_semana_hora.png')
+plt.savefig('4_heatmap_ventas_semana_hora.png')
 plt.show()
