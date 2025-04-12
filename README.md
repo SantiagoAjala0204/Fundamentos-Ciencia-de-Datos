@@ -30,13 +30,13 @@ Este dataset contiene datos de transacciones, desde el  01/12/2010 hasta 09/12/2
 
 
 ## Describir lo encontrado para cada uno de los campos
-Luego de leer los los datos desde la base SQL podemos observar que el set de datos contiene los siguientes campos:
+Luego de leer los los datos (397880 registros) desde la base SQL podemos observar que el set de datos contiene los siguientes campos:
 
 - **InvoiceNo**: Número único de factura
 - **StockCode**: Código único del producto
 - **Description**: Descripción del producto
 - **Quantity**: Cantidad de productos vendidos
-- **UnitPrice**: Precio unitario del producto
+- **UnitPrice**: Precio unitario del producto (libras)
 - **CustomerID**: ID único del cliente
 - **InvoiceDate**: Fecha de la transacción
 - **Country**: País del cliente
